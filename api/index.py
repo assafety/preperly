@@ -7,13 +7,11 @@ from flask_cors import CORS
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
 import anthropic
 
-app = Flask(__name__, static_folder='public', static_url_path='')
+# Point Flask to the public folder for static files
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'public'), static_url_path='')
 CORS(app)
-
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 
 
 def hex2rgb(h):
@@ -75,7 +73,6 @@ def add_bullets(slide, items, x, y, w, h, size=14, color='#1E2030'):
 
 def build_pptx(plan, slides):
     C = get_colours(plan.get('slideStyle', ''))
-
     prs = Presentation()
     prs.slide_width = Inches(10)
     prs.slide_height = Inches(5.625)
@@ -95,7 +92,7 @@ def build_pptx(plan, slides):
     c2    = slides.get('content2') or {}
     act   = slides.get('activity') or {}
 
-    # ── Slide 1: Title ──
+    # Slide 1: Title
     s = new_slide(C['dk'])
     add_rect(s, 0, 0, 0.18, 5.625, C['h2'])
     add_text(s, (plan.get('subject') or '').upper(), 0.5, 0.7, 9, 0.5, size=11, color=C['h2'], bold=True)
@@ -103,7 +100,7 @@ def build_pptx(plan, slides):
     add_rect(s, 0.5, 3.28, 1.6, 0.07, C['h2'])
     add_text(s, f"{plan.get('yearGroup','')}  •  {plan.get('duration','')}", 0.5, 3.5, 9, 0.5, size=15, color='#8890B0')
 
-    # ── Slide 2: Objectives ──
+    # Slide 2: Objectives
     s = new_slide(C['lt'])
     add_rect(s, 0, 0, 10, 1.1, C['h1'])
     add_text(s, 'LEARNING OBJECTIVES', 0.4, 0.25, 9, 0.6, size=14, color='#FFFFFF', bold=True)
@@ -115,26 +112,26 @@ def build_pptx(plan, slides):
         add_text(s, str(i + 1), 0.55, y + 0.15, 0.4, 0.45, size=13, color=C['h2'], bold=True)
         add_text(s, obj, 1.1, y + 0.12, 8.2, 0.55, size=13, color=C['tx'])
 
-    # ── Slide 3: Starter ──
+    # Slide 3: Starter
     s = new_slide(C['dk'])
     add_text(s, '⚡  STARTER ACTIVITY', 0.5, 0.45, 9, 0.45, size=11, color=C['ac'], bold=True)
     add_text(s, hook.get('title') or 'Think About This...', 0.5, 0.95, 9, 1.1, size=24, color='#FFFFFF', bold=True)
     add_rect(s, 0.5, 2.1, 9, 0.07, C['h2'])
     add_bullets(s, hook.get('bullets') or [], 0.5, 2.25, 9, 3.0, size=15, color='#E8EAF2')
 
-    # ── Slide 4: Content 1 ──
+    # Slide 4: Content 1
     s = new_slide(C['wh'])
     add_rect(s, 0, 0, 10, 1.0, C['h1'])
     add_text(s, c1.get('title') or '', 0.4, 0.15, 9.2, 0.75, size=20, color='#FFFFFF', bold=True)
     add_bullets(s, c1.get('bullets') or [], 0.4, 1.15, 9.2, 4.2, size=14, color=C['tx'])
 
-    # ── Slide 5: Content 2 ──
+    # Slide 5: Content 2
     s = new_slide(C['lt'])
     add_rect(s, 0, 0, 10, 1.0, C['h2'])
     add_text(s, c2.get('title') or '', 0.4, 0.15, 9.2, 0.75, size=20, color='#FFFFFF', bold=True)
     add_bullets(s, c2.get('bullets') or [], 0.4, 1.15, 9.2, 4.2, size=14, color=C['tx'])
 
-    # ── Slide 6: Vocabulary ──
+    # Slide 6: Vocabulary
     s = new_slide(C['lt'])
     add_rect(s, 0, 0, 10, 1.0, C['h2'])
     add_text(s, 'KEY VOCABULARY', 0.4, 0.15, 9, 0.75, size=20, color='#FFFFFF', bold=True)
@@ -148,7 +145,7 @@ def build_pptx(plan, slides):
         add_text(s, v.get('word') or '', x + 0.25, y + 0.1, 4.1, 0.45, size=14, color=C['h1'], bold=True)
         add_text(s, v.get('definition') or '', x + 0.25, y + 0.6, 4.1, 0.75, size=12, color='#7A80A0', italic=True)
 
-    # ── Slide 7: Activity ──
+    # Slide 7: Activity
     s = new_slide(C['dk'])
     add_text(s, '✏️  ACTIVITY TIME', 0.5, 0.45, 9, 0.45, size=11, color=C['ac'], bold=True)
     add_text(s, act.get('title') or 'Your Task', 0.5, 0.95, 9, 1.0, size=24, color='#FFFFFF', bold=True)
@@ -158,7 +155,7 @@ def build_pptx(plan, slides):
     for i, step in enumerate((act.get('steps') or [])[:4]):
         add_text(s, f'{i+1}.  {step}', 0.5, 2.7 + i * 0.72, 9, 0.65, size=14, color='#E8EAF2')
 
-    # ── Slide 8: Summary ──
+    # Slide 8: Summary
     s = new_slide(C['wh'])
     add_rect(s, 0, 0, 10, 1.0, C['h1'])
     add_text(s, 'LESSON SUMMARY', 0.4, 0.15, 9, 0.75, size=20, color='#FFFFFF', bold=True)
@@ -169,7 +166,7 @@ def build_pptx(plan, slides):
         add_rect(s, 0.4, y, 0.07, 0.75, C['ac'])
         add_text(s, obj, 0.6, y + 0.12, 8.8, 0.55, size=13, color=C['tx'])
 
-    # ── Slide 9: Exit Ticket ──
+    # Slide 9: Exit Ticket
     s = new_slide(C['dk'])
     add_text(s, '🎫  EXIT TICKET', 0.5, 0.45, 9, 0.45, size=11, color=C['ac'], bold=True)
     add_text(s, 'Before You Go...', 0.5, 0.95, 9, 0.85, size=24, color='#FFFFFF', bold=True)
@@ -186,8 +183,11 @@ def build_pptx(plan, slides):
 
 @app.route('/')
 def index():
-    return send_from_directory('public', 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(app.static_folder, path)
 
 @app.route('/api/generate-plan', methods=['POST'])
 def generate_plan():
@@ -238,9 +238,9 @@ def generate_plan():
 @app.route('/api/build-pptx', methods=['POST'])
 def build_pptx_route():
     try:
-        data   = request.json
+        data    = request.json
         api_key = data.get('apiKey', '')
-        plan   = data.get('plan', {})
+        plan    = data.get('plan', {})
         if not api_key:
             return jsonify({'error': 'No API key provided'}), 400
 
