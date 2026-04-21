@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Preperly — AI Lesson Planner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0F1117;color:#E8EAF2;font-family:Georgia,serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding-bottom:60px}
+:root{--ac:#6C63FF;--aL:#8B84FF;--gr:#22C55E;--su:#1A1D27;--ca:#21263A;--bo:#2E3451;--mu:#8890B0}
+.hdr{width:100%;background:var(--su);border-bottom:1px solid var(--bo);padding:14px 24px;display:flex;align-items:center;gap:12px;box-sizing:border-box}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--ac),var(--aL));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.brand{font-size:17px;font-weight:bold;letter-spacing:-0.4px}
+.brand-sub{font-size:11px;color:var(--mu);font-family:Calibri,sans-serif}
+.key-saved{margin-left:auto;display:none;align-items:center;gap:8px;font-size:12px;font-family:Calibri,sans-serif;color:var(--mu)}
+.green-dot{width:8px;height:8px;border-radius:50%;background:var(--gr);flex-shrink:0}
+.badge{margin-left:auto;background:rgba(108,99,255,0.15);border:1px solid var(--ac);color:var(--aL);font-size:10px;padding:3px 10px;border-radius:20px;font-family:Calibri,sans-serif;letter-spacing:1px}
+.main{width:100%;max-width:800px;padding:0 16px}
+.page{display:none}.page.active{display:block}
+.stepbar{display:flex;align-items:center;margin:24px 0 18px}
+.sdot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;font-family:Calibri,sans-serif;flex-shrink:0}
+.sdot.on{background:var(--ac);color:#fff;border:2px solid var(--ac)}
+.sdot.off{background:var(--su);color:var(--mu);border:2px solid var(--bo)}
+.slbl{font-size:12px;font-family:Calibri,sans-serif;white-space:nowrap;margin-left:7px}
+.slbl.on{color:#E8EAF2}.slbl.off{color:var(--mu)}
+.sline{flex:1;height:2px;margin:0 8px}
+.sline.on{background:var(--ac)}.sline.off{background:var(--bo)}
+.card{background:var(--ca);border:1px solid var(--bo);border-radius:14px;padding:24px;margin-bottom:16px}
+.sl{font-size:10px;color:var(--ac);letter-spacing:2px;font-weight:bold;font-family:Calibri,sans-serif;margin-bottom:12px;text-transform:uppercase}
+select,input[type=text],input[type=password],textarea{background:var(--su);border:1px solid var(--bo);border-radius:9px;color:#E8EAF2;font-size:15px;padding:10px 12px;font-family:Calibri,sans-serif;width:100%;outline:none;transition:border-color 0.2s}
+select:focus,input:focus,textarea:focus{border-color:var(--ac)}
+textarea{resize:vertical;line-height:1.6}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;flex:1;min-width:155px}
+.lbl{font-size:12px;color:var(--mu);margin-bottom:6px;display:block;font-family:Calibri,sans-serif}
+.btn-p{background:linear-gradient(135deg,var(--ac),var(--aL));color:#fff;border:none;border-radius:10px;padding:13px 28px;font-size:15px;font-weight:bold;font-family:Calibri,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(108,99,255,0.35)}
+.btn-p:hover{opacity:0.9}
+.btn-g{background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;border:none;border-radius:10px;padding:13px 28px;font-size:15px;font-weight:bold;font-family:Calibri,sans-serif;cursor:pointer;box-shadow:0 3px 14px rgba(34,197,94,0.3)}
+.btn-g:hover{opacity:0.9}
+.btn-o{background:transparent;color:var(--mu);border:1px solid var(--bo);border-radius:10px;padding:11px 18px;font-size:14px;font-family:Calibri,sans-serif;cursor:pointer}
+.btn-sm{background:transparent;color:var(--aL);border:1px solid var(--bo);border-radius:8px;padding:6px 12px;font-size:12px;font-family:Calibri,sans-serif;cursor:pointer;white-space:nowrap}
+.err-bar{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:12px 14px;color:#FCA5A5;font-size:13px;font-family:Calibri,sans-serif;margin-bottom:14px;line-height:1.6;display:none}
+.info-bar{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#86EFAC;font-family:Calibri,sans-serif}
+.setup-steps{text-align:left;background:var(--su);border:1px solid var(--bo);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+.ss-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.ss-row:last-child{margin-bottom:0}
+.ss-num{width:28px;height:28px;min-width:28px;background:var(--ac);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:13px;font-family:Calibri,sans-serif}
+.ss-txt{font-size:14px;font-family:Calibri,sans-serif;color:#E8EAF2;line-height:1.65}
+.ss-txt a{color:var(--aL)}
+.presets{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.preset{background:transparent;color:var(--mu);border:1px solid var(--bo);border-radius:20px;padding:5px 12px;font-size:12px;font-family:Calibri,sans-serif;cursor:pointer}
+.preset.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.phase-card{background:var(--su);border:1px solid var(--bo);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.phase-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.mlbl{font-size:10px;letter-spacing:1.5px;font-weight:bold;font-family:Calibri,sans-serif;margin-bottom:5px}
+.vocab-row{display:flex;gap:8px;margin-bottom:8px}
+.eli{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+.el-del{margin-top:6px;background:rgba(239,68,68,0.15);border:none;border-radius:6px;color:#FCA5A5;font-size:16px;width:28px;height:28px;cursor:pointer;flex-shrink:0}
+.el-add{background:transparent;border:1px dashed var(--bo);border-radius:8px;color:var(--mu);font-size:13px;padding:7px;cursor:pointer;font-family:Calibri,sans-serif;text-align:left;width:100%;margin-top:4px}
+.loading-card{text-align:center;padding:52px 24px}
+.spinner{display:flex;justify-content:center;gap:6px;margin-top:24px}
+.spinner div{width:10px;height:10px;border-radius:50%;background:var(--ac);animation:pulse 1.2s ease-in-out infinite}
+.spinner div:nth-child(2){animation-delay:.4s}
+.spinner div:nth-child(3){animation-delay:.8s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.dl-card{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:32px;text-align:center;margin-bottom:16px}
+.app-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.app-tile{background:var(--ca);border:1px solid var(--bo);border-radius:9px;padding:12px 14px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">📚</div>
+  <div>
+    <div class="brand">Preperly</div>
+    <div class="brand-sub">AI Lesson Planner &amp; PowerPoint Generator</div>
+  </div>
+  <div class="key-saved" id="keySaved">
+    <div class="green-dot"></div>
+    <span>Ready</span>
+    <button class="btn-sm" onclick="changeKey()">Change Key</button>
+  </div>
+  <div class="badge" id="badge">BETA</div>
+</div>
+
+<div class="main">
+  <div class="err-bar" id="errBar"></div>
+
+  <!-- API KEY SETUP -->
+  <div class="page active" id="pg-apikey">
+    <div style="max-width:540px;margin:36px auto 0;text-align:center">
+      <div style="font-size:52px;margin-bottom:16px">🔑</div>
+      <div style="font-size:24px;font-weight:bold;margin-bottom:10px">One-time setup</div>
+      <div style="font-size:14px;color:var(--mu);font-family:Calibri,sans-serif;line-height:1.7;margin-bottom:24px">
+        Preperly uses your Anthropic API key to generate lessons.<br/>
+        You only enter this <strong style="color:#E8EAF2">once</strong> — it's saved in your browser.
+      </div>
+      <div class="setup-steps">
+        <div class="ss-row"><div class="ss-num">1</div><div class="ss-txt">Go to <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> and sign up</div></div>
+        <div class="ss-row"><div class="ss-num">2</div><div class="ss-txt">Click <strong>Settings → API Keys → Create Key</strong> — copy it</div></div>
+        <div class="ss-row"><div class="ss-num">3</div><div class="ss-txt">Click <strong>Billing</strong> and add <strong>$5 credit</strong> (covers hundreds of lessons)</div></div>
+        <div class="ss-row"><div class="ss-num">4</div><div class="ss-txt">Paste your key below — it starts with <strong>sk-ant-</strong></div></div>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="sl">Paste your API key</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="password" id="setupKey" placeholder="sk-ant-api03-..." autocomplete="off" onkeydown="if(event.key==='Enter')saveKey()"/>
+          <button class="btn-sm" onclick="toggleVis('setupKey',this)">Show</button>
+        </div>
+        <div style="font-size:12px;color:var(--mu);font-family:Calibri,sans-serif;margin-bottom:16px">🔒 Saved only in this browser. Never shared with anyone.</div>
+        <button class="btn-p" style="width:100%" onclick="saveKey()">Save &amp; Start Planning →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="page" id="pg-form">
+    <div class="stepbar">
+      <div class="sdot on">1</div><span class="slbl on">Lesson Details</span>
+      <div class="sline off"></div>
+      <div class="sdot off">2</div><span class="slbl off">Review &amp; Edit</span>
+      <div class="sline off"></div>
+      <div class="sdot off">3</div><span class="slbl off">Download</span>
+    </div>
+    <div class="card">
+      <div class="sl">Step 1 — Lesson Details</div>
+      <div class="row">
+        <div class="fg">
+          <label class="lbl">Subject *</label>
+          <select id="subject">
+            <option value="">Select subject...</option>
+            <option>English</option><option>Maths</option><option>Science</option>
+            <option>History</option><option>Geography</option><option>Art &amp; Design</option>
+            <option>Music</option><option>PE</option><option>PSHE</option>
+            <option>Religious Education</option><option>Design &amp; Technology</option>
+            <option>Computing</option><option>Languages (MFL)</option><option>Drama</option>
+            <option>Biology</option><option>Chemistry</option><option>Physics</option>
+            <option>Economics</option><option>Business Studies</option>
+            <option>Sociology</option><option>Psychology</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Year Group *</label>
+          <select id="yearGroup">
+            <option value="">Select year group...</option>
+            <option>Year 1</option><option>Year 2</option><option>Year 3</option>
+            <option>Year 4</option><option>Year 5</option><option>Year 6</option>
+            <option>Year 7</option><option>Year 8</option><option>Year 9</option>
+            <option>Year 10</option><option>Year 11</option><option>Year 12</option>
+            <option>Year 13</option><option>EYFS / Reception</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="lbl">Topic / Lesson Title *</label>
+        <input type="text" id="topic" placeholder="e.g. The causes of World War One"/>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="lbl">Duration</label>
+        <select id="duration">
+          <option>30 minutes</option><option>45 minutes</option>
+          <option selected>60 minutes</option><option>75 minutes</option><option>90 minutes</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="lbl">Special Requirements <span style="opacity:.5">(optional)</span></label>
+        <textarea id="requirements" rows="3" placeholder="e.g. group work, SEND adaptations, GCSE exam technique..."></textarea>
+      </div>
+      <div style="margin-bottom:24px">
+        <label class="lbl">🎨 Slide Style <span style="opacity:.5">(optional)</span></label>
+        <div class="presets">
+          <button class="preset" onclick="pickPreset(this,'Bright and colourful, bold fonts, high energy')">Bright &amp; Colourful</button>
+          <button class="preset" onclick="pickPreset(this,'Clean and minimal, white background, simple layout')">Clean &amp; Minimal</button>
+          <button class="preset" onclick="pickPreset(this,'Dark and bold, deep navy and purple, professional')">Dark &amp; Bold</button>
+          <button class="preset" onclick="pickPreset(this,'Pastel colours, soft and friendly, younger pupils')">Pastel &amp; Friendly</button>
+          <button class="preset" onclick="pickPreset(this,'High contrast, large text, optimised for projector')">Projector-Friendly</button>
+        </div>
+        <textarea id="slideStyle" rows="2" placeholder="Or describe your own style... e.g. School colours are green and gold"></textarea>
+      </div>
+      <button class="btn-p" onclick="generatePlan()">🧠 Generate Lesson Plan →</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="page" id="pg-loading">
+    <div class="card loading-card">
+      <div style="font-size:40px;margin-bottom:14px" id="loadIcon">🧠</div>
+      <div style="font-size:19px;font-weight:bold;margin-bottom:8px" id="loadMsg">Generating your lesson plan...</div>
+      <div style="font-size:13px;color:var(--mu);font-family:Calibri,sans-serif" id="loadSub">Usually 15–20 seconds</div>
+      <div class="spinner"><div></div><div></div><div></div></div>
+    </div>
+  </div>
+
+  <!-- PLAN REVIEW -->
+  <div class="page" id="pg-plan">
+    <div class="stepbar">
+      <div class="sdot on">✓</div><span class="slbl on">Lesson Details</span>
+      <div class="sline on"></div>
+      <div class="sdot on">2</div><span class="slbl on">Review &amp; Edit</span>
+      <div class="sline off"></div>
+      <div class="sdot off">3</div><span class="slbl off">Download</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:18px;font-weight:bold;margin-bottom:3px" id="planTitle"></div>
+        <div style="font-size:12px;color:var(--mu);font-family:Calibri,sans-serif" id="planMeta"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-o" onclick="goTo('form')">← Back</button>
+        <button class="btn-g" onclick="buildPptx()">⬇️ Build &amp; Download PowerPoint</button>
+      </div>
+    </div>
+    <div class="info-bar">✏️ <strong>Review and edit anything below</strong>, then click <strong>Build &amp; Download PowerPoint</strong>.</div>
+    <div class="card"><div class="sl">Learning Objectives</div><div id="objList"></div></div>
+    <div class="card"><div class="sl">Lesson Phases</div><div id="phaseList"></div></div>
+    <div class="card"><div class="sl">Key Vocabulary</div><div id="vocabList"></div></div>
+    <div class="card">
+      <div class="sl">Assessment Strategies</div><div id="assessList"></div>
+      <div style="height:16px"></div>
+      <div class="sl">Homework Suggestion</div>
+      <textarea id="homework" rows="3" style="margin-bottom:16px"></textarea>
+      <div class="sl">Teacher Notes</div>
+      <textarea id="teacherNotes" rows="4"></textarea>
+    </div>
+    <div style="text-align:center;margin-bottom:8px">
+      <button class="btn-g" style="padding:15px 40px;font-size:16px" onclick="buildPptx()">⬇️ Build &amp; Download PowerPoint</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div class="page" id="pg-done">
+    <div class="stepbar">
+      <div class="sdot on">✓</div><span class="slbl on">Lesson Details</span>
+      <div class="sline on"></div>
+      <div class="sdot on">✓</div><span class="slbl on">Review &amp; Edit</span>
+      <div class="sline on"></div>
+      <div class="sdot on">3</div><span class="slbl on">Download</span>
+    </div>
+    <div class="dl-card">
+      <div style="font-size:44px;margin-bottom:12px">🎉</div>
+      <div style="font-size:22px;font-weight:bold;margin-bottom:8px">Your PowerPoint is downloading!</div>
+      <div style="font-size:14px;color:var(--mu);font-family:Calibri,sans-serif;line-height:1.75;margin-bottom:22px">
+        A professional 9-slide <strong style="color:#E8EAF2">.pptx file</strong> is saving to your Downloads folder.<br/>
+        Open it in PowerPoint, Google Slides, Keynote, or import into Canva.
+      </div>
+      <button class="btn-g" style="font-size:15px;padding:13px 30px" onclick="downloadAgain()">⬇️ Download Again</button>
+    </div>
+    <div class="card" style="background:var(--su)">
+      <div class="sl">Open &amp; Edit In</div>
+      <div class="app-grid">
+        <div class="app-tile"><div style="font-weight:bold;margin-bottom:3px">🖥️ PowerPoint</div><div style="font-size:12px;color:var(--mu);font-family:Calibri,sans-serif">Open from Downloads folder</div></div>
+        <div class="app-tile"><div style="font-weight:bold;margin-bottom:3px">📊 Google Slides</div><div style="font-size:12px;color:var(--mu);font-family:Calibri,sans-serif">Upload to Google Drive</div></div>
+        <div class="app-tile"><div style="font-weight:bold;margin-bottom:3px">🎨 Canva</div><div style="font-size:12px;color:var(--mu);font-family:Calibri,sans-serif">File → Import → Upload .pptx</div></div>
+        <div class="app-tile"><div style="font-weight:bold;margin-bottom:3px">📱 Keynote</div><div style="font-size:12px;color:var(--mu);font-family:Calibri,sans-serif">Open on Mac or iPad</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+      <button class="btn-p" onclick="goTo('plan')">← Edit Plan &amp; Rebuild</button>
+      <button class="btn-o" onclick="newLesson()">+ New Lesson</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const KEY_STORE = 'preperly_key';
+
+function goTo(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showErr(msg) {
+  const el = document.getElementById('errBar');
+  el.textContent = '❌ ' + msg;
+  el.style.display = 'block';
+  window.scrollTo(0, 0);
+  setTimeout(() => el.style.display = 'none', 9000);
+}
+
+function setLoad(icon, msg, sub) {
+  document.getElementById('loadIcon').textContent = icon;
+  document.getElementById('loadMsg').textContent = msg;
+  document.getElementById('loadSub').textContent = sub || 'Usually 15–20 seconds';
+  goTo('loading');
+}
+
+function getKey() { return localStorage.getItem(KEY_STORE) || ''; }
+
+function saveKey() {
+  const k = document.getElementById('setupKey').value.trim();
+  if (!k) { showErr('Please paste your API key.'); return; }
+  if (!k.startsWith('sk-ant-')) { showErr('Key should start with sk-ant-'); return; }
+  localStorage.setItem(KEY_STORE, k);
+  document.getElementById('keySaved').style.display = 'flex';
+  document.getElementById('badge').style.display = 'none';
+  goTo('form');
+}
+
+function changeKey() {
+  if (!confirm('Remove your saved API key?')) return;
+  localStorage.removeItem(KEY_STORE);
+  document.getElementById('keySaved').style.display = 'none';
+  document.getElementById('badge').style.display = 'block';
+  goTo('apikey');
+}
+
+function toggleVis(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? 'Show' : 'Hide';
+}
+
+function pickPreset(el, val) {
+  document.querySelectorAll('.preset').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('slideStyle').value = val;
+}
+
+window.addEventListener('load', () => {
+  if (getKey()) {
+    document.getElementById('keySaved').style.display = 'flex';
+    document.getElementById('badge').style.display = 'none';
+    goTo('form');
+  }
+});
+
+let PL = null, lastBytes = null, lastFile = '';
+
+async function generatePlan() {
+  const subject    = document.getElementById('subject').value;
+  const yearGroup  = document.getElementById('yearGroup').value;
+  const topic      = document.getElementById('topic').value.trim();
+  const duration   = document.getElementById('duration').value;
+  const requirements = document.getElementById('requirements').value.trim();
+  const slideStyle   = document.getElementById('slideStyle').value.trim();
+
+  if (!subject || !yearGroup || !topic) {
+    showErr('Please fill in Subject, Year Group, and Topic.'); return;
+  }
+
+  setLoad('🧠', 'Generating your lesson plan...', 'Claude is writing your lesson — usually 15–20 seconds');
+
+  try {
+    const resp = await fetch('/api/generate-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: getKey(), subject, yearGroup, topic, duration, requirements })
+    });
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error);
+    PL = { ...result.plan, slideStyle };
+    renderPlan();
+    goTo('plan');
+  } catch(e) { showErr('Plan failed: ' + e.message); goTo('form'); }
+}
+
+function renderPlan() {
+  document.getElementById('planTitle').textContent = PL.lessonTitle || '';
+  document.getElementById('planMeta').textContent = PL.yearGroup + ' · ' + PL.subject + ' · ' + PL.duration;
+  mkList('objList', PL.learningObjectives || [], 'learningObjectives', 'Learning objective...');
+  mkPhases();
+  mkVocab();
+  mkList('assessList', PL.assessmentStrategies || [], 'assessmentStrategies', 'Assessment strategy...');
+  document.getElementById('homework').value = PL.homeworkSuggestion || '';
+  document.getElementById('teacherNotes').value = PL.teacherNotes || '';
+}
+
+function mkList(id, items, key, ph) {
+  const el = document.getElementById(id); el.innerHTML = '';
+  items.forEach((item, i) => {
+    const row = document.createElement('div'); row.className = 'eli';
+    const dot = document.createElement('span');
+    dot.textContent = '•'; dot.style.cssText = 'margin-top:10px;color:var(--ac);font-size:14px;flex-shrink:0';
+    const ta = document.createElement('textarea');
+    ta.style.cssText = 'flex:1;background:var(--su);border:1px solid var(--bo);border-radius:9px;color:#E8EAF2;font-size:14px;padding:8px 10px;font-family:Calibri,sans-serif;resize:vertical;line-height:1.5;width:100%';
+    ta.rows = 2; ta.placeholder = ph; ta.value = item;
+    ta.oninput = () => { PL[key][i] = ta.value; };
+    const del = document.createElement('button'); del.className = 'el-del'; del.textContent = '×';
+    del.onclick = () => { PL[key].splice(i, 1); mkList(id, PL[key], key, ph); };
+    row.appendChild(dot); row.appendChild(ta); row.appendChild(del); el.appendChild(row);
+  });
+  const add = document.createElement('button'); add.className = 'el-add'; add.textContent = '+ Add';
+  add.onclick = () => { PL[key].push(''); mkList(id, PL[key], key, ph); };
+  el.appendChild(add);
+}
+
+function mkPhases() {
+  const el = document.getElementById('phaseList'); el.innerHTML = '';
+  (PL.lessonPhases || []).forEach((ph, i) => {
+    const c = document.createElement('div'); c.className = 'phase-card';
+    c.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+        '<div style="font-size:14px;font-weight:bold">' + ph.phase + '</div>' +
+        '<input type="text" value="' + ph.duration + '" style="width:90px;padding:5px 8px;font-size:13px" oninput="PL.lessonPhases[' + i + '].duration=this.value"/>' +
+      '</div>' +
+      '<div class="phase-grid">' +
+        '<div><div class="mlbl" style="color:var(--ac)">TEACHER ACTIVITY</div>' +
+        '<textarea rows="3" style="width:100%;background:var(--su);border:1px solid var(--bo);border-radius:9px;color:#E8EAF2;font-size:13px;padding:8px 10px;font-family:Calibri,sans-serif;resize:vertical" oninput="PL.lessonPhases[' + i + '].teacherActivity=this.value">' + ph.teacherActivity + '</textarea></div>' +
+        '<div><div class="mlbl" style="color:var(--ac)">STUDENT ACTIVITY</div>' +
+        '<textarea rows="3" style="width:100%;background:var(--su);border:1px solid var(--bo);border-radius:9px;color:#E8EAF2;font-size:13px;padding:8px 10px;font-family:Calibri,sans-serif;resize:vertical" oninput="PL.lessonPhases[' + i + '].studentActivity=this.value">' + ph.studentActivity + '</textarea></div>' +
+      '</div>' +
+      '<div class="mlbl" style="color:var(--aL)">DIFFERENTIATION</div>' +
+      '<textarea rows="2" style="width:100%;background:var(--su);border:1px solid var(--bo);border-radius:9px;color:#E8EAF2;font-size:13px;padding:8px 10px;font-family:Calibri,sans-serif;resize:vertical" oninput="PL.lessonPhases[' + i + '].differentiation=this.value">' + ph.differentiation + '</textarea>';
+    el.appendChild(c);
+  });
+}
+
+function mkVocab() {
+  const el = document.getElementById('vocabList'); el.innerHTML = '';
+  (PL.keyVocabulary || []).forEach((v, i) => {
+    const row = document.createElement('div'); row.className = 'vocab-row';
+    row.innerHTML =
+      '<input type="text" value="' + (v.word||'').replace(/"/g,'&quot;') + '" placeholder="Word" style="width:30%;flex:0 0 30%" oninput="PL.keyVocabulary[' + i + '].word=this.value"/>' +
+      '<input type="text" value="' + (v.definition||'').replace(/"/g,'&quot;') + '" placeholder="Definition" style="flex:1" oninput="PL.keyVocabulary[' + i + '].definition=this.value"/>';
+    el.appendChild(row);
+  });
+}
+
+function syncDOM() {
+  PL.homeworkSuggestion = document.getElementById('homework').value;
+  PL.teacherNotes = document.getElementById('teacherNotes').value;
+}
+
+async function buildPptx() {
+  syncDOM();
+  setLoad('🎨', 'Generating slides &amp; building PowerPoint...', 'This takes about 20–30 seconds');
+  try {
+    const resp = await fetch('/api/build-pptx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: getKey(), plan: PL })
+    });
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error);
+
+    const binary = atob(result.pptx);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    lastBytes = bytes;
+    lastFile = 'Preperly_' + (PL.lessonTitle || 'Lesson').replace(/[^a-z0-9]/gi, '_') + '.pptx';
+    doDownload(lastBytes, lastFile);
+    goTo('done');
+  } catch(e) { showErr('PowerPoint failed: ' + e.message); goTo('plan'); }
+}
+
+function doDownload(bytes, name) {
+  const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function downloadAgain() { if (lastBytes) doDownload(lastBytes, lastFile); }
+
+function newLesson() {
+  PL = null; lastBytes = null;
+  ['subject','yearGroup','topic','requirements','slideStyle'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('duration').value = '60 minutes';
+  document.querySelectorAll('.preset').forEach(b => b.classList.remove('on'));
+  goTo('form');
+}
+</script>
+</body>
+</html>
