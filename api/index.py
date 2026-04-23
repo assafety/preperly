@@ -352,6 +352,8 @@ def generate_plan():
             }]
         )
         raw = message.content[0].text
+        # Strip markdown code blocks if present
+        raw = raw.replace('```json', '').replace('```', '').strip()
         s = raw.index('{')
         e = raw.rindex('}')
         plan = json.loads(raw[s:e+1])
@@ -359,7 +361,8 @@ def generate_plan():
         return jsonify({'success': True, 'plan': plan})
 
     except Exception as ex:
-        return jsonify({'success': False, 'error': str(ex)}), 500
+        import traceback
+        return jsonify({'success': False, 'error': str(ex), 'trace': traceback.format_exc()}), 500
 
 
 @app.route('/api/build-pptx', methods=['POST'])
@@ -399,6 +402,8 @@ def build_pptx_route():
             }]
         )
         raw    = message.content[0].text
+        # Strip markdown code blocks if present
+        raw = raw.replace('```json', '').replace('```', '').strip()
         s      = raw.index('{')
         e      = raw.rindex('}')
         slides = json.loads(raw[s:e+1])
